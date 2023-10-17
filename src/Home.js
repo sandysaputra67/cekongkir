@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
 function Home() {
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
@@ -8,32 +7,25 @@ function Home() {
   const [provinces, setProvinces] = useState([]);
   const [postalcode, setPostalcode] = useState("");
   const [weight, setWeight] = useState("");
-  const [courier, setCourier] = useState("");
+  const [courier, setCourier] = useState([]);
   const [results, setResults] = useState([]);
+
+  const baseurl = "http://localhost:3000/api/";
 
   useEffect(() => {
     handleCity();
     handleProvinces();
   }, []);
-
   const handleCheckOngkir = async () => {
     try {
-      const response = await axios.post(
-        "https://api.rajaongkir.com/starter/cost",
-        {
-          origin: origin,
-          destination: destination,
-          weight: weight,
-          courier: courier,
-        },
-        {
-          headers: {
-            key: "aac75978ddf338dc5d0c08f76b7161b3",
-          },
-        }
-      );
-
-      setResults(response.data.results);
+      const response = await axios.post(`${baseurl}cost`, {
+        origin: origin,
+        destination: destination,
+        weight: weight,
+        courier: courier,
+      });
+  
+      setResults(response.data.rajaongkir.results);
     } catch (error) {
       console.error(error);
     }
@@ -41,40 +33,30 @@ function Home() {
 
   const handleCity = async () => {
     try {
-      const response = await axios.get("/api/city"); 
+      const response = await axios.get(`${baseurl}city`);
       setCityname(response.data.rajaongkir.results);
     } catch (error) {
       console.error(error);
     }
   };
-
+  
   const handleProvinces = async () => {
     try {
-      const response = await axios.get(
-        "https://api.rajaongkir.com/starter/province",
-        {
-          headers: {
-            key: "aac75978ddf338dc5d0c08f76b7161b3",
-          },
-        }
-      );
-
+      const response = await axios.get(`${baseurl}province`);
       setProvinces(response.data.rajaongkir.results);
     } catch (error) {
       console.error(error);
     }
   };
 
+
   return (
     <div>
       <div>
         <label htmlFor="cityname">City Name</label>
-        <select
-  id="cityname"
-  value={origin}  
-  onChange={(e) => setOrigin(e.target.value)}
->
-
+        <select multiple={false} value={cityname}
+          onChange={(e) => setOrigin(e.target.value)}
+        >
           <option value="">Select a city</option>
           {cityname.map((city) => (
             <option key={city.city_id} value={city.city_id}>
@@ -85,10 +67,9 @@ function Home() {
       </div>
       <div>
         <label htmlFor="provinces">Provinces</label>
-        <select
-          id="provinces"
-          value={provinces}
-          onChange={(e) => setProvinces(e.target.value)}
+        <select multiple={false} value={destination}
+        
+          onChange={(e) => setDestination(e.target.value)}
         >
           <option value="">Select a province</option>
           {provinces.map((province) => (
@@ -116,15 +97,18 @@ function Home() {
           onChange={(e) => setWeight(e.target.value)}
         />
       </div>
+
       <div>
-        <label htmlFor="courier">Courier</label>
-        <input
-          type="text"
-          id="courier"
-          value={courier}
-          onChange={(e) => setCourier(e.target.value)}
-        />
-      </div>
+  <label htmlFor="courier">Courier</label>
+  <select value={courier} onChange={(e) => setCourier(e.target.value)}>
+    <option value="">Select a courier</option>
+    {Array.isArray(courier) && courier.map((c) => (
+      <option key={c.courier_name} value={c.courier_name}>
+        {c.courier_name}
+      </option>
+    ))}
+  </select>
+</div>
 
       <button onClick={handleCheckOngkir}>Check Ongkir</button>
       {results.length > 0 && (
